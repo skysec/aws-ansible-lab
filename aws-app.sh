@@ -44,9 +44,16 @@ INSTANCE_ID=`aws ec2 run-instances --image-id "${AMI}" --count 1 \
 # Get Public Ip Address
 IP_ADDR=`aws ec2 describe-instances \
 --filter "Name=instance-id,Values=${INSTANCE_ID}" | grep PublicIpAddress | egrep -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"`
-
-# Give some time to provision
 sleep 25
+# Give some time to provision
+for((I=0;$I<10;I=$I+1))
+do
+curl --connect-timeout 8 "http://${IP_ADDR}:${APP_PORT}" >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+  break
+fi
+sleep 6
+done
 
 # Output URL
 echo "http://${IP_ADDR}:${APP_PORT}"
